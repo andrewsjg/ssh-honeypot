@@ -59,10 +59,16 @@ func passwordHandler(ctx ssh.Context, password string) bool {
 		// If we dont find a valid record in the DB, default to "Unknown" for the geolocation data.
 		jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"Unknown\", \"region\": \"Unknown\", \"country\": \"Unknown\",\"latitude\":0,\"longitude\":0\"}"
 	} else {
-		lat := fmt.Sprintf("%f", record.Location.Latitude)
-		long := fmt.Sprintf("%f", record.Location.Longitude)
-		fmt.Println(record)
-		jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"" + record.City.Names["en"] + "\", \"region\": \"" + record.Subdivisions[0].Names["en"] + "\", \"country\": \"" + record.Country.Names["en"] + "\",\"latitude\":" + lat + ",\"longitude\":" + long + "}"
+		// Check if the returned record has any data in it. If not, also return unknown geolocation data
+		if len(record.City.Names) > 0 {
+			lat := fmt.Sprintf("%f", record.Location.Latitude)
+			long := fmt.Sprintf("%f", record.Location.Longitude)
+
+			jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"" + record.City.Names["en"] + "\", \"region\": \"" + record.Subdivisions[0].Names["en"] + "\", \"country\": \"" + record.Country.Names["en"] + "\",\"latitude\":" + lat + ",\"longitude\":" + long + "}"
+		} else {
+
+			jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"Unknown\", \"region\": \"Unknown\", \"country\": \"Unknown\",\"latitude\":0,\"longitude\":0\"}"
+		}
 	}
 
 	// Send the output to the textUpdates channel for rendering on the TUI
