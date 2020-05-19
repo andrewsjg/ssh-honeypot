@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	// Needed to get at the ParsePrivateKey function. There must be a better way to do this?
 	gossh "golang.org/x/crypto/ssh"
 
 	"github.com/gliderlabs/ssh"
@@ -84,7 +85,7 @@ func passwordHandler(ctx ssh.Context, password string) bool {
 	textUpdates <- jsonOutput
 
 	// Log the output for indexing and external analysis
-	log.Println(jsonOutput)
+	log.Println(jsonOutput + "\n")
 
 	// Put in a small delay as a "real" ssh server might have
 	time.Sleep(2 * time.Second)
@@ -176,7 +177,7 @@ func main() {
 				loginMsg := "[" + loginData.Date.Format(time.RFC3339) + "](fg:blue) - Login attempt from user: [" + loginData.User + "](fg:green)" + " with password: [" + loginData.Password + "](fg:red) from: [" + loginData.IPAddress + "](fg:yellow) [(" + loginData.City + ", " + loginData.Region + ", " + loginData.Country + ")](fg:yellow)"
 				newText := logTextBox.Text + "\n" + loginMsg
 
-				// If the output is bigger than the textbox, trim by one line.
+				// If the output is about to fill the textbox, trim by one line.
 				if countRune(newText, '\n') > logTextBox.Bounds().Dy()-3 {
 					newText = trimToChar(newText, "\n")
 				}
@@ -190,6 +191,8 @@ func main() {
 
 }
 
+// Utilitiy function used to count the occurance of characters in a string.
+// Used to count newlines to keep track of the number of lines in the output string
 func countRune(s string, r rune) int {
 	count := 0
 	for _, c := range s {
@@ -200,7 +203,7 @@ func countRune(s string, r rune) int {
 	return count
 }
 
-// Helper function that trims a string from the first occrance of a character.
+// Utility function that trims a string from the first occrance of a character.
 // This is used to trim the output in the UI when it scrolls beyound the bounds of the textbox
 func trimToChar(s string, char string) string {
 	if idx := strings.Index(s, char); idx != -1 {
