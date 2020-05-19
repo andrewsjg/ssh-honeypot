@@ -2,7 +2,7 @@
 
 A simple SSH honeypot written on Go. Strictly not a honeypot as it doesnt trap or jail anything, it simply collects data on attempts to login to a generic SSH server open to the internet. 
 
-The tool runs an SSH server that rejects all login attempts. There is no session created it just allows a login attempt and records the user name and password  and source IP for later analysis.
+The tool runs an SSH server that rejects all login attempts. There is no session created it just allows a login attempt and records the user name and password and source IP for later analysis.
 
 ## Features:
 
@@ -19,7 +19,7 @@ The tool runs an SSH server that rejects all login attempts. There is no session
 3. If you have it, put the latest GeoLite2-City.mmdb file in the same directory as the server binary
 4. Run the server: `./ssh-honeypot`\
 \
-**Note:** The server starts on TCP Port 2222. To expose it to the internet you will need to map port 22 on your internet router to port 2222 on the machine your honey pot is running on.
+**Note:** The server starts on TCP Port 2222. To expose it to the internet you will need to map port 22 on your external router to port 2222 on the machine your honey pot is running on.
 
 5. Watch for login attempts!
 
