@@ -36,39 +36,47 @@ type LoginData struct {
 }
 
 func passwordHandler(ctx ssh.Context, password string) bool {
-	// Get Location
-	db, err := geoip2.Open("GeoLite2-City.mmdb")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+	//TODO: I think I can redo the geolocation error logic. There are lots of failure cases resulting in the same output.
 
 	jsonOutput := "{}"
+	isMMDB := true
 
-	ipAddr := strings.Split(ctx.RemoteAddr().String(), ":")[0]
-
-	if ipAddr == "127.0.0.1" {
-		// If we are testing from localhost, "fake" an IP address to test geolocation
-		ipAddr = "216.58.204.238"
+	// Get Location information
+	db, err := geoip2.Open("GeoLite2-City.mmdb")
+	if err != nil {
+		isMMDB = false
 	}
 
-	// If you are using strings that may be invalid, check that ip is not nil
-	ip := net.ParseIP(ipAddr)
-	record, err := db.City(ip)
-	if err != nil {
-		// If we dont find a valid record in the DB, default to "Unknown" for the geolocation data.
-		jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"Unknown City\", \"region\": \"Unknown Region\", \"country\": \"Unknown Country\",\"latitude\":0,\"longitude\":0}"
-	} else {
-		// Check if the returned record has any data in it. If not, also return unknown geolocation data
-		if len(record.City.Names) > 0 {
-			lat := fmt.Sprintf("%f", record.Location.Latitude)
-			long := fmt.Sprintf("%f", record.Location.Longitude)
+	ipAddr := strings.Split(ctx.RemoteAddr().String(), ":")[0]
+	if isMMDB {
+		defer db.Close()
 
-			jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"" + record.City.Names["en"] + "\", \"region\": \"" + record.Subdivisions[0].Names["en"] + "\", \"country\": \"" + record.Country.Names["en"] + "\",\"latitude\":" + lat + ",\"longitude\":" + long + "}"
-		} else {
-
-			jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"Unknown City\", \"region\": \"Unknown Region\", \"country\": \"Unknown Country\",\"latitude\":0,\"longitude\":0}"
+		if ipAddr == "127.0.0.1" {
+			// If we are testing from localhost, "fake" an IP address to test geolocation
+			ipAddr = "216.58.204.238"
 		}
+
+		// If you are using strings that may be invalid, check that ip is not nil
+		ip := net.ParseIP(ipAddr)
+		record, err := db.City(ip)
+		if err != nil {
+			// If we dont find a valid record in the DB, default to "Unknown" for the geolocation data.
+			jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"Unknown City\", \"region\": \"Unknown Region\", \"country\": \"Unknown Country\",\"latitude\":0,\"longitude\":0}"
+		} else {
+			// Check if the returned record has any data in it. If not, also return unknown geolocation data
+			if len(record.City.Names) > 0 {
+				lat := fmt.Sprintf("%f", record.Location.Latitude)
+				long := fmt.Sprintf("%f", record.Location.Longitude)
+
+				jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"" + record.City.Names["en"] + "\", \"region\": \"" + record.Subdivisions[0].Names["en"] + "\", \"country\": \"" + record.Country.Names["en"] + "\",\"latitude\":" + lat + ",\"longitude\":" + long + "}"
+			} else {
+
+				jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"Unknown City\", \"region\": \"Unknown Region\", \"country\": \"Unknown Country\",\"latitude\":0,\"longitude\":0}"
+			}
+		}
+	} else {
+		// If there is no maxmind DB, return unknown
+		jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"Unknown City\", \"region\": \"Unknown Region\", \"country\": \"Unknown Country\",\"latitude\":0,\"longitude\":0}"
 	}
 
 	// Send the output to the textUpdates channel for rendering on the TUI
@@ -121,7 +129,6 @@ func main() {
 		//Handler:         sessionHandler,
 		PasswordHandler: passwordHandler,
 	}
-
 	s.AddHostKey(private)
 
 	log.SetFlags(0)
