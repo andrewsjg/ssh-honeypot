@@ -61,6 +61,7 @@ func passwordHandler(ctx ssh.Context, password string) bool {
 	} else {
 		lat := fmt.Sprintf("%f", record.Location.Latitude)
 		long := fmt.Sprintf("%f", record.Location.Longitude)
+		fmt.Println(record)
 		jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"" + record.City.Names["en"] + "\", \"region\": \"" + record.Subdivisions[0].Names["en"] + "\", \"country\": \"" + record.Country.Names["en"] + "\",\"latitude\":" + lat + ",\"longitude\":" + long + "}"
 	}
 
