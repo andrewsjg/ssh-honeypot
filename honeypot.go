@@ -124,8 +124,7 @@ func main() {
 	}
 
 	s := &ssh.Server{
-		Addr: ":" + sPort,
-		//Handler:         sessionHandler,
+		Addr:            ":" + sPort,
 		PasswordHandler: passwordHandler,
 	}
 	s.AddHostKey(private)
@@ -140,6 +139,8 @@ func main() {
 	}
 	defer logFile.Close()
 
+	// Use the multiwriter to write to stdout and to a logfile if required.
+	// Used in testing
 	//mw := io.MultiWriter(os.Stdout, logFile)
 	log.SetOutput(logFile)
 	go s.ListenAndServe()
@@ -151,9 +152,12 @@ func main() {
 		select {
 		case e := <-uiEvents:
 			switch e.ID {
+
+			// Quit when q is enterd
 			case "q", "<C-c>":
 				return
 
+			// Adjust the UI boarder when the window is resized
 			case "<Resize>":
 				payload := e.Payload.(ui.Resize)
 				logTextBox.SetRect(0, 0, payload.Width, payload.Height)
@@ -172,6 +176,7 @@ func main() {
 				loginMsg := "[" + loginData.Date.Format(time.RFC3339) + "](fg:blue) - Login attempt from user: [" + loginData.User + "](fg:green)" + " with password: [" + loginData.Password + "](fg:red) from: [" + loginData.IPAddress + "](fg:yellow) [(" + loginData.City + ", " + loginData.Region + ", " + loginData.Country + ")](fg:yellow)"
 				newText := logTextBox.Text + "\n" + loginMsg
 
+				// If the output is bigger than the textbox, trim by one line.
 				if countRune(newText, '\n') > logTextBox.Bounds().Dy()-3 {
 					newText = trimToChar(newText, "\n")
 				}
@@ -195,6 +200,8 @@ func countRune(s string, r rune) int {
 	return count
 }
 
+// Helper function that trims a string from the first occrance of a character.
+// This is used to trim the output in the UI when it scrolls beyound the bounds of the textbox
 func trimToChar(s string, char string) string {
 	if idx := strings.Index(s, char); idx != -1 {
 		return s[idx+1:]
