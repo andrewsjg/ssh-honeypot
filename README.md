@@ -18,7 +18,7 @@ Usage:
 1. Compile the binary by simply running `go build`
 2. Generate a hostkey for the fake server using `ssh-keygen` and put the private key (id_rsa) in the same directory as the server binary 
 3. If you have it, put the latest GeoLite2-City.mmdb file in the same directory as the server binary
-4. Run the server: `./ssh-honeypot`
+4. Run the server: `./ssh-honeypot`\
 **Note:** The server starts on TCP Port 2222. To expose it to the internet you will need to map port 22 on your internet route to port 2222 on the machine your honey pot is running on.
 5. Watch for login attempts!
 
