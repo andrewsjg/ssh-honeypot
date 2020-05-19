@@ -1,8 +1,8 @@
 # ssh-honeypot
 
-A simple SSH honey pot written on Go. Designed to collect data on attempts to login to a generic SSH server open to the internet. 
+A simple SSH honeypot written on Go. Strictly not a honeypot as it doesnt trap or jail anything, it simply collects data on attempts to login to a generic SSH server open to the internet. 
 
-The tool runs an SSH server that rejects all login attempts. There is no session created it simply presents records the user name and password for later analysis.
+The tool runs an SSH server that rejects all login attempts. There is no session created it just allows a login attempt and records the user name and password  and source IP for later analysis.
 
 ## Features:
 
