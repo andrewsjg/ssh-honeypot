@@ -85,7 +85,7 @@ func passwordHandler(ctx ssh.Context, password string) bool {
 	textUpdates <- jsonOutput
 
 	// Log the output for indexing and external analysis
-	log.Println(jsonOutput)
+	log.Println(jsonOutput + "\n")
 
 	// Put in a small delay as a "real" ssh server might have
 	time.Sleep(2 * time.Second)
