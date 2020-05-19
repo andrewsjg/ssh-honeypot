@@ -3,11 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"strings"
 	"time"
+
+	gossh "golang.org/x/crypto/ssh"
 
 	"github.com/gliderlabs/ssh"
 	"github.com/oschwald/geoip2-golang"
@@ -18,6 +21,8 @@ import (
 
 var textUpdates chan string
 
+// LoginData is the internal representation of my json object created when someone
+// attempts a login
 type LoginData struct {
 	Date      time.Time `json:"date"`
 	User      string    `json:"user"`
@@ -58,6 +63,8 @@ func passwordHandler(ctx ssh.Context, password string) bool {
 	textUpdates <- jsonOutput
 	log.Println(jsonOutput)
 
+	// Put in a small delay as a "real" ssh server might have
+	time.Sleep(2 * time.Second)
 	return false
 }
 
@@ -84,11 +91,25 @@ func main() {
 	logTextBox.SetRect(0, 0, termWidth, termHeight)
 	logTextBox.BorderStyle.Fg = ui.ColorBlue
 
+	// Load a hostkey so a new one isnt generated every time
+	privateBytes, err := ioutil.ReadFile("id_rsa")
+	if err != nil {
+		log.Fatal("Failed to load private key (./id_rsa)")
+	}
+
+	private, err := gossh.ParsePrivateKey(privateBytes)
+	if err != nil {
+		log.Fatal("Failed to parse private key")
+	}
+
 	s := &ssh.Server{
 		Addr: ":" + sPort,
 		//Handler:         sessionHandler,
 		PasswordHandler: passwordHandler,
 	}
+
+	s.AddHostKey(private)
+
 	log.SetFlags(0)
 
 	fileName := "honeypot-" + time.Now().Format("2006-01-02") + ".log"
