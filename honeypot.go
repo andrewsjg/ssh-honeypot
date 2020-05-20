@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net"
 	"os"
 	"strings"
@@ -44,23 +45,24 @@ func passwordHandler(ctx ssh.Context, password string) bool {
 	isMMDB := true
 
 	// Get Location information
-	db, err := geoip2.Open("GeoLite2-City.mmdb")
+	cityDb, err := geoip2.Open("GeoLite2-City.mmdb")
 	if err != nil {
 		isMMDB = false
 	}
 
 	ipAddr := strings.Split(ctx.RemoteAddr().String(), ":")[0]
 	if isMMDB {
-		defer db.Close()
+		defer cityDb.Close()
 
 		if ipAddr == "127.0.0.1" {
 			// If we are testing from localhost, "fake" an IP address to test geolocation
-			ipAddr = "216.58.204.238"
+			//ipAddr = "216.58.204.238"
+			ipAddr = "85.209.0.100"
 		}
 
 		// If you are using strings that may be invalid, check that ip is not nil
 		ip := net.ParseIP(ipAddr)
-		record, err := db.City(ip)
+		record, err := cityDb.City(ip)
 		if err != nil {
 			// If we dont find a valid record in the DB, default to "Unknown" for the geolocation data.
 			jsonOutput = "{\"date\": \"" + time.Now().Format(time.RFC3339) + "\",\"user\": \"" + ctx.User() + "\", \"password\": \"" + password + "\", \"ip_address\": \"" + ipAddr + "\",\"city\": \"Unknown City\", \"region\": \"Unknown Region\", \"country\": \"Unknown Country\",\"latitude\":0,\"longitude\":0}"
@@ -173,7 +175,8 @@ func main() {
 				logTextBox.Text = logTextBox.Text + "\n" + msg + " error: " + err.Error()
 			} else {
 
-				loginMsg := "[" + loginData.Date.Format(time.RFC3339) + "](fg:blue) - Login attempt from user: [" + loginData.User + "](fg:green)" + " with password: [" + loginData.Password + "](fg:red) from: [" + loginData.IPAddress + "](fg:yellow) [(" + loginData.City + ", " + loginData.Region + ", " + loginData.Country + ")](fg:yellow)"
+				//loginMsg := "[" + loginData.Date.Format(time.RFC3339) + "](fg:blue) - Login attempt from user: [" + loginData.User + "](fg:green)" + " with password: [" + loginData.Password + "](fg:red) from: [" + loginData.IPAddress + "](fg:yellow) [(" + loginData.City + ", " + loginData.Region + ", " + loginData.Country + ")](fg:yellow)"
+				loginMsg := formatOutput(loginData)
 				newText := logTextBox.Text + "\n" + loginMsg
 
 				// If the output is about to fill the textbox, trim by one line.
@@ -210,4 +213,46 @@ func trimToChar(s string, char string) string {
 	}
 
 	return s
+}
+
+func formatOutput(raw LoginData) string {
+
+	passwordFieldSize := 15
+	userFieldSize := 15
+
+	passwordText := strPad(raw.Password, passwordFieldSize, " ", "RIGHT")
+	userText := strPad(raw.User, userFieldSize, " ", "RIGHT")
+
+	output := "[" + raw.Date.Format(time.RFC3339) + "](fg:blue) - Login attempt from user: [" + userText + "](fg:green)" + " with password: [" + passwordText + "](fg:red) from: [" + raw.IPAddress + "](fg:yellow) [(" + raw.City + ", " + raw.Region + ", " + raw.Country + ")](fg:yellow)"
+
+	return output
+}
+
+// strPad pads a string byt the required length. From: https://gist.github.com/asessa/3aaec43d93044fc42b7c6d5f728cb039
+func strPad(input string, padLength int, padString string, padType string) string {
+	var output string
+
+	inputLength := len(input)
+	padStringLength := len(padString)
+
+	if inputLength >= padLength {
+		return input
+	}
+
+	repeat := math.Ceil(float64(1) + (float64(padLength-padStringLength))/float64(padStringLength))
+
+	switch padType {
+	case "RIGHT":
+		output = input + strings.Repeat(padString, int(repeat))
+		output = output[:padLength]
+	case "LEFT":
+		output = strings.Repeat(padString, int(repeat)) + input
+		output = output[len(output)-padLength:]
+	case "BOTH":
+		length := (float64(padLength - inputLength)) / float64(2)
+		repeat = math.Ceil(length / float64(padStringLength))
+		output = strings.Repeat(padString, int(repeat))[:int(math.Floor(float64(length)))] + input + strings.Repeat(padString, int(repeat))[:int(math.Ceil(float64(length)))]
+	}
+
+	return output
 }
