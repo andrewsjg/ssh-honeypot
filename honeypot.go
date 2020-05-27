@@ -116,13 +116,14 @@ func main() {
 	sPort := "2222"
 
 	startUp := fmt.Sprintf("SSH Honeypot - Started: "+time.Now().Format(time.RFC3339)+" on port %s\n", sPort)
-	waitMsg := fmt.Sprintf("[" + time.Now().Format(time.RFC3339) + "](fg:blue) - Waiting for first login attempt")
+	uiHeaderRow := strPad("Date", 15, " ", "RIGHT") + " " + strPad("User", 15, " ", "RIGHT") + strPad("Password", 15, " ", "RIGHT") + " " + "Location\n"
+	//waitMsg := fmt.Sprintf("[" + time.Now().Format(time.RFC3339) + "](fg:blue) - Waiting for first login attempt")
 
 	termWidth, termHeight := ui.TerminalDimensions()
 
 	logTextBox := widgets.NewParagraph()
 	logTextBox.Title = startUp
-	logTextBox.Text = waitMsg
+	logTextBox.Text = uiHeaderRow
 	logTextBox.SetRect(0, 0, termWidth, termHeight)
 	logTextBox.BorderStyle.Fg = ui.ColorBlue
 
