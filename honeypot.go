@@ -116,11 +116,18 @@ func main() {
 	sPort := "2222"
 
 	startUp := fmt.Sprintf("SSH Honeypot - Started: "+time.Now().Format(time.RFC3339)+" on port %s\n", sPort)
-	uiHeaderRow := strPad("Date", 15, " ", "RIGHT") + " " + strPad("User", 15, " ", "RIGHT") + strPad("Password", 15, " ", "RIGHT") + " " + "Location\n"
+	uiHeaderRow := "[" + strPad("Date", 25, " ", "RIGHT") + " " + strPad("User", 21, " ", "RIGHT") + strPad("Password", 20, " ", "RIGHT") + " " + "IP Address and Location](fg:magenta)"
 	//waitMsg := fmt.Sprintf("[" + time.Now().Format(time.RFC3339) + "](fg:blue) - Waiting for first login attempt")
 
 	termWidth, termHeight := ui.TerminalDimensions()
 
+	/*
+		titleTextBox := widgets.NewParagraph()
+		titleTextBox.Title = startUp
+		titleTextBox.Text = uiHeaderRow
+		titleTextBox.SetRect(0, 0, termWidth, 3)
+		titleTextBox.BorderStyle.Fg = ui.ColorBlue
+	*/
 	logTextBox := widgets.NewParagraph()
 	logTextBox.Title = startUp
 	logTextBox.Text = uiHeaderRow
@@ -160,6 +167,7 @@ func main() {
 	log.SetOutput(logFile)
 	go s.ListenAndServe()
 
+	//ui.Render(titleTextBox)
 	ui.Render(logTextBox)
 
 	uiEvents := ui.PollEvents()
@@ -194,7 +202,8 @@ func main() {
 
 				// If the output is about to fill the textbox, trim by one line.
 				if countRune(newText, '\n') > logTextBox.Bounds().Dy()-3 {
-					newText = trimToChar(newText, "\n")
+					headerRow := "[" + strPad("Date", 25, " ", "RIGHT") + " " + strPad("User", 21, " ", "RIGHT") + strPad("Password", 20, " ", "RIGHT") + " " + "IP Address and Location](fg:magenta)\n"
+					newText = headerRow + trimToChar(trimToChar(newText, "\n"), "\n")
 				}
 				logTextBox.Text = newText
 
@@ -230,13 +239,13 @@ func trimToChar(s string, char string) string {
 
 func formatOutput(raw LoginData) string {
 
-	passwordFieldSize := 15
-	userFieldSize := 15
+	passwordFieldSize := 20
+	userFieldSize := 20
 
 	passwordText := strPad(raw.Password, passwordFieldSize, " ", "RIGHT")
 	userText := strPad(raw.User, userFieldSize, " ", "RIGHT")
 
-	output := "[" + raw.Date.Format(time.RFC3339) + "](fg:blue) - Login attempt from user: [" + userText + "](fg:green)" + " with password: [" + passwordText + "](fg:red) from: [" + raw.IPAddress + "](fg:yellow) [(" + raw.City + ", " + raw.Region + ", " + raw.Country + ")](fg:yellow)"
+	output := "[" + raw.Date.Format(time.RFC3339) + "](fg:blue) [" + userText + "](fg:green) [" + passwordText + "](fg:red) [" + raw.IPAddress + "](fg:yellow) [(" + raw.City + ", " + raw.Region + ", " + raw.Country + ")](fg:yellow)"
 
 	return output
 }
