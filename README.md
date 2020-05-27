@@ -24,5 +24,9 @@ The tool runs an SSH server that rejects all login attempts. There is no session
 5. Watch for login attempts!
 
 
+This product includes GeoLite2 data created by MaxMind, available from
+["https://www.maxmind.com"](https://www.maxmind.com)
+
+
 
 
