@@ -116,7 +116,7 @@ func main() {
 	sPort := "2222"
 
 	startUp := fmt.Sprintf("SSH Honeypot - Started: "+time.Now().Format(time.RFC3339)+" on port %s\n", sPort)
-	uiHeaderRow := "[" + strPad("Date", 25, " ", "RIGHT") + " " + strPad("User", 21, " ", "RIGHT") + strPad("Password", 20, " ", "RIGHT") + " " + "IP Address and Location](fg:magenta)"
+	uiHeaderRow := "[" + strPad("Date", 35, " ", "RIGHT") + " " + strPad("User", 21, " ", "RIGHT") + strPad("Password", 20, " ", "RIGHT") + " " + "IP Address and Location](fg:magenta)"
 
 	termWidth, termHeight := ui.TerminalDimensions()
 
@@ -193,7 +193,7 @@ func main() {
 
 				// If the output is about to fill the textbox, trim by one line.
 				if countRune(newText, '\n') > logTextBox.Bounds().Dy()-3 {
-					headerRow := "[" + strPad("Date", 25, " ", "RIGHT") + " " + strPad("User", 21, " ", "RIGHT") + strPad("Password", 20, " ", "RIGHT") + " " + "IP Address and Location](fg:magenta)\n"
+					headerRow := "[" + strPad("Date", 35, " ", "RIGHT") + " " + strPad("User", 21, " ", "RIGHT") + strPad("Password", 20, " ", "RIGHT") + " " + "IP Address and Location](fg:magenta)\n"
 					newText = headerRow + trimToChar(trimToChar(newText, "\n"), "\n")
 				}
 				logTextBox.Text = newText
@@ -232,11 +232,13 @@ func formatOutput(raw LoginData) string {
 
 	passwordFieldSize := 20
 	userFieldSize := 20
+	dateFieldSize := 35
 
 	passwordText := strPad(raw.Password, passwordFieldSize, " ", "RIGHT")
 	userText := strPad(raw.User, userFieldSize, " ", "RIGHT")
+	dateText := strPad(raw.Date.Format(time.RFC3339), dateFieldSize, " ", "RIGHT")
 
-	output := "[" + raw.Date.Format(time.RFC3339) + "](fg:blue) [" + userText + "](fg:green) [" + passwordText + "](fg:red) [" + raw.IPAddress + "](fg:yellow) [(" + raw.City + ", " + raw.Region + ", " + raw.Country + ")](fg:yellow)"
+	output := "[" + dateText + "](fg:blue) [" + userText + "](fg:green) [" + passwordText + "](fg:red) [" + raw.IPAddress + "](fg:yellow) [(" + raw.City + ", " + raw.Region + ", " + raw.Country + ")](fg:yellow)"
 
 	return output
 }
