@@ -117,17 +117,9 @@ func main() {
 
 	startUp := fmt.Sprintf("SSH Honeypot - Started: "+time.Now().Format(time.RFC3339)+" on port %s\n", sPort)
 	uiHeaderRow := "[" + strPad("Date", 25, " ", "RIGHT") + " " + strPad("User", 21, " ", "RIGHT") + strPad("Password", 20, " ", "RIGHT") + " " + "IP Address and Location](fg:magenta)"
-	//waitMsg := fmt.Sprintf("[" + time.Now().Format(time.RFC3339) + "](fg:blue) - Waiting for first login attempt")
 
 	termWidth, termHeight := ui.TerminalDimensions()
 
-	/*
-		titleTextBox := widgets.NewParagraph()
-		titleTextBox.Title = startUp
-		titleTextBox.Text = uiHeaderRow
-		titleTextBox.SetRect(0, 0, termWidth, 3)
-		titleTextBox.BorderStyle.Fg = ui.ColorBlue
-	*/
 	logTextBox := widgets.NewParagraph()
 	logTextBox.Title = startUp
 	logTextBox.Text = uiHeaderRow
@@ -196,7 +188,6 @@ func main() {
 				logTextBox.Text = logTextBox.Text + "\n" + msg + " error: " + err.Error()
 			} else {
 
-				//loginMsg := "[" + loginData.Date.Format(time.RFC3339) + "](fg:blue) - Login attempt from user: [" + loginData.User + "](fg:green)" + " with password: [" + loginData.Password + "](fg:red) from: [" + loginData.IPAddress + "](fg:yellow) [(" + loginData.City + ", " + loginData.Region + ", " + loginData.Country + ")](fg:yellow)"
 				loginMsg := formatOutput(loginData)
 				newText := logTextBox.Text + "\n" + loginMsg
 
